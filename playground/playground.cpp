@@ -9,7 +9,7 @@
 GLFWwindow* window;
 
 // Include GLM
-#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
 #include <common/shader.hpp>
@@ -26,6 +26,11 @@ int main( void )
 
   // Create and compile our GLSL program from the shaders
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+
+  initializeMVPTransformation();
+
+  curr_x = 0;
+  curr_y = 0;
 
 	//start animation loop until escape key is pressed
 	do{
@@ -53,6 +58,12 @@ void updateAnimationLoop()
   // Use our shader
   glUseProgram(programID);
 
+  initializeMVPTransformation();
+
+  // Send our transformation to the currently bound shader, 
+  // in the "MVP" uniform
+  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -66,7 +77,23 @@ void updateAnimationLoop()
   );
 
   // Draw the triangle !
-  glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+  glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
+
+  glm::mat4 transformation;//additional transformation for the model
+  if (glfwGetKey(window, GLFW_KEY_W)) curr_y += 0.01;
+  else if (glfwGetKey(window, GLFW_KEY_S)) curr_y -= 0.01;
+  else if (glfwGetKey(window, GLFW_KEY_A)) curr_x -= 0.01;
+  else if (glfwGetKey(window, GLFW_KEY_D)) curr_x += 0.01;
+  else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle += 0.01;
+  transformation[0][0] = 1.0; transformation[1][0] = 0.0; transformation[2][0] = 0.0; transformation[3][0] = curr_x;
+  transformation[0][1] = 0.0; transformation[1][1] = 1.0; transformation[2][1] = 0.0; transformation[3][1] = curr_y;
+  transformation[0][2] = 0.0; transformation[1][2] = 0.0; transformation[2][2] = 1.0; transformation[3][2] = 0.0;
+  transformation[0][3] = 0.0; transformation[1][3] = 0.0; transformation[2][3] = 0.0; transformation[3][3] = 1.0;
+
+  MVP = MVP * transformation;
+
+  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  glDrawArrays(GL_TRIANGLES, 4, 6);
 
   glDisableVertexAttribArray(0);
 
@@ -118,16 +145,50 @@ bool initializeWindow()
   return true;
 }
 
+bool initializeMVPTransformation()
+{
+  // Get a handle for our "MVP" uniform
+  GLuint MatrixIDnew = glGetUniformLocation(programID, "MVP");
+  MatrixID = MatrixIDnew;
+
+  
+  // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+  glm::mat4 Projection = glm::perspective(glm::radians(60.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+  //glm::mat4 Projection = glm::frustum(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
+  // Camera matrix
+  float distance = 8;
+  glm::mat4 View = glm::lookAt(
+    glm::vec3(distance, distance, -1*distance), // Camera is at (4,3,-3), in World Space
+    glm::vec3(0, 0, 0), // and looks at the origin
+    glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+  );
+  // Model matrix : an identity matrix (model will be at the origin)
+  glm::mat4 Model = glm::mat4(1.0f);
+
+  Model = glm::rotate(Model, curr_angle, glm::vec3(0.0f, 1.0f, 1.0f));
+  
+  
+  // Our ModelViewProjection : multiplication of our 3 matrices
+  MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+
+  return true;
+  
+}
+
 bool initializeVertexbuffer()
 {
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
 
-  vertexbuffer_size = 3;
+  vertexbuffer_size = 2;
   static const GLfloat g_vertex_buffer_data[] = {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    0.0f,  1.0f, 0.0f,
+    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f, // triangle 1 : end
+    -3.0f,-3.0f,-1.0f, // triangle 2 : begin
+    -3.0f,-3.0f, 1.0f,
+    -3.0f,-1.0f, 1.0f, // triangle 2 : end
   };
 
   glGenBuffers(1, &vertexbuffer);

@@ -13,3 +13,5 @@ OpenGL-tutorial_v*
 .DS_Store
 playground/playground
 .vscode
+playground/SimpleVertexShader.tex
+playground/SimpleFragmentShader.frag
