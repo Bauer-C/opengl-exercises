@@ -14,6 +14,12 @@ using namespace glm;
 
 #include <common/shader.hpp>
 
+
+// const int num_coordinates = 3;
+// const int num_verticesModel = 3*1;
+// const int max_models = 1;
+// static GLfloat g_vertex_buffer_data[num_coordinates*num_verticesModel*max_models];
+
 int main( void )
 {
   //Initialize window
@@ -48,6 +54,10 @@ int main( void )
 	closeWindow();
   
 	return 0;
+}
+void genModels(std::vector<glm::vec3> * vertices)
+{
+  //todo
 }
 
 void updateAnimationLoop()
@@ -93,7 +103,7 @@ void updateAnimationLoop()
   MVP = MVP * transformation;
 
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-  glDrawArrays(GL_TRIANGLES, 4, 3);
+  glDrawArrays(GL_TRIANGLES, 3, 3);
 
   glDisableVertexAttribArray(0);
 
@@ -175,26 +185,26 @@ bool initializeMVPTransformation()
   return true;
   
 }
-
+void genSquare(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset)
+{
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+}
 bool initializeVertexbuffer()
 {
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
 
-  vertexbuffer_size = 2;
-  static const GLfloat g_vertex_buffer_data[] = {
-    -1.0f,-1.0f, 0.0f, // triangle 1 : begin
-     1.0f,-1.0f, 0.0f,
-     1.0f, 1.0f, 0.0f, // triangle 1 : end
-    -3.0f,-3.0f,-1.0f, // triangle 2 : begin
-    -3.0f,-3.0f, 1.0f,
-    -3.0f,-1.0f, 1.0f, // triangle 2 : end
-  };
+  std::vector<glm::vec3> vertices;
+  genSquare(&vertices, glm::vec3(0));
 
   glGenBuffers(1, &vertexbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
+  glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vec3), vertices.data(), GL_STATIC_DRAW);
   return true;
 }
 

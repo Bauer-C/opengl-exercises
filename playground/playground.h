@@ -6,6 +6,7 @@
 
 // Include GLM
 #include <glm/glm.hpp>
+#include <vector>
 
 //some global variables for handling the vertex buffer
 GLuint vertexbuffer;
@@ -31,5 +32,7 @@ bool initializeMVPTransformation();
 bool initializeVertexbuffer(); //<<< initializes the vertex buffer array and binds it OpenGL
 bool cleanupVertexbuffer(); //<<< frees all recources from the vertex buffer
 bool closeWindow(); //<<< Closes the OpenGL window and terminates GLFW
+void genSquare(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset);
+void genModels(std::vector<glm::vec3> * vertices);
 
 #endif
