@@ -19,6 +19,10 @@ using namespace glm;
 // const int num_verticesModel = 3*1;
 // const int max_models = 1;
 // static GLfloat g_vertex_buffer_data[num_coordinates*num_verticesModel*max_models];
+int model_index;
+bool model_touched_ground;
+static const int NUM_VERTICES_PER_MODEL = 6;
+std::vector<glm::vec3> vertices;
 
 int main( void )
 {
@@ -37,6 +41,8 @@ int main( void )
 
   curr_x = 0;
   curr_y = 0;
+  model_touched_ground = true; // to generate a model at start
+  model_index = -1; // 0 = 1 model
 
 	//start animation loop until escape key is pressed
 	do{
@@ -86,8 +92,12 @@ void updateAnimationLoop()
     (void*)0            // array buffer offset
   );
 
-  // draw inactive **unmovable** triangle
-  glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
+  
+  model_index = 1;
+  // draw **inactive** (unmovable) triangle
+  if(model_index > 0){
+    glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES_PER_MODEL*model_index); // 6 indices starting at 0 -> 1 square
+  }
 
   // draw **active** (movable) model
   glm::mat4 transformation = glm::mat4(1.0f);//additional transformation for the model
@@ -106,7 +116,7 @@ void updateAnimationLoop()
   MVP = MVP * transformation * Rotation;
 
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-  glDrawArrays(GL_TRIANGLES, 3, 3);
+  glDrawArrays(GL_TRIANGLES, NUM_VERTICES_PER_MODEL*(model_index), NUM_VERTICES_PER_MODEL);
 
   glDisableVertexAttribArray(0);
 
@@ -202,13 +212,13 @@ bool initializeVertexbuffer()
 {
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
-
-  std::vector<glm::vec3> vertices;
   genSquare(&vertices, glm::vec3(0));
+  genSquare(&vertices, glm::vec3(0.0f, 2.0f, 0.0f));
 
   glGenBuffers(1, &vertexbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
   glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vec3), vertices.data(), GL_STATIC_DRAW);
+  vertices.clear();
   return true;
 }
 
