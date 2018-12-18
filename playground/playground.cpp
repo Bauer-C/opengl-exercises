@@ -89,16 +89,13 @@ void updateAnimationLoop()
   // draw unmovable triangle
   glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
 
-  glm::mat4 transformation;//additional transformation for the model
+  glm::mat4 transformation = glm::mat4(1.0f);//additional transformation for the model
   if (glfwGetKey(window, GLFW_KEY_W)) curr_y += 0.01;
   else if (glfwGetKey(window, GLFW_KEY_S)) curr_y -= 0.01;
   else if (glfwGetKey(window, GLFW_KEY_A)) curr_x -= 0.01;
   else if (glfwGetKey(window, GLFW_KEY_D)) curr_x += 0.01;
   else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle += 0.01;
-  transformation[0][0] = 1.0; transformation[1][0] = 0.0; transformation[2][0] = 0.0; transformation[3][0] = curr_x;
-  transformation[0][1] = 0.0; transformation[1][1] = 1.0; transformation[2][1] = 0.0; transformation[3][1] = curr_y;
-  transformation[0][2] = 0.0; transformation[1][2] = 0.0; transformation[2][2] = 1.0; transformation[3][2] = 0.0;
-  transformation[0][3] = 0.0; transformation[1][3] = 0.0; transformation[2][3] = 0.0; transformation[3][3] = 1.0;
+ transformation = glm::translate(transformation, glm::vec3(curr_x, curr_y, 0.0f));
 
   MVP = MVP * transformation;
 
@@ -175,7 +172,7 @@ bool initializeMVPTransformation()
   // Model matrix : an identity matrix (model will be at the origin)
   glm::mat4 Model = glm::mat4(1.0f);
 
-  Model = glm::rotate(Model, curr_angle, glm::vec3(0.0f, 1.0f, 1.0f));
+  Model = glm::rotate(Model, curr_angle, glm::vec3(0.0f, 0.0f, 1.0f));
   
   
   // Our ModelViewProjection : multiplication of our 3 matrices
