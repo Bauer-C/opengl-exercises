@@ -194,6 +194,10 @@ void genSquare(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset)
   modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
   modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
 }
+void genSquare(std::vector<glm::vec3> * modelVertices)
+{
+  genSquare (modelVertices, glm::vec3(0.0f, 0.0f, 0.0f));
+}
 bool initializeVertexbuffer()
 {
   glGenVertexArrays(1, &VertexArrayID);
