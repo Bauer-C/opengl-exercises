@@ -24,6 +24,12 @@ bool model_touched_ground;
 static const int NUM_VERTICES_PER_MODEL = 6;
 std::vector<glm::vec3> vertices;
 
+// used when generating model vertices
+int static const SAVEDMODELSMAX = 100;
+float savedModelsOffset[SAVEDMODELSMAX];
+int savedModels[SAVEDMODELSMAX];
+float static const UPPER_BOUND = -17.0f;
+
 int main( void )
 {
   //Initialize window
@@ -40,9 +46,9 @@ int main( void )
   initializeMVPTransformation();
 
   curr_x = 0;
-  curr_y = 0;
+  curr_y = UPPER_BOUND;
   model_touched_ground = true; // to generate a model at start
-  model_index = -1; // 0 = 1 model
+  model_index = 0; // 0 = 1 model
 
 	//start animation loop until escape key is pressed
 	do{
@@ -93,16 +99,30 @@ void updateAnimationLoop()
   );
 
   
-  model_index = 1;
   // draw **inactive** (unmovable) triangle
   if(model_index > 0){
     glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES_PER_MODEL*model_index); // 6 indices starting at 0 -> 1 square
   }
 
+  curr_y += 0.01; //gravity
+  // upper bound check
+  if (curr_y > 0){
+    curr_y = UPPER_BOUND;
+    savedModelsOffset[model_index] = curr_x;
+    printf("curr_x value saved: %f\n", curr_x);
+    curr_x = 0;
+    model_index++;
+    if (model_index > SAVEDMODELSMAX){
+      exit(1); // exit because too many models saved
+    }
+    cleanupVertexbuffer();
+    initializeVertexbuffer();
+  }
+
   // draw **active** (movable) model
-  glm::mat4 transformation = glm::mat4(1.0f);//additional transformation for the model
-  if (glfwGetKey(window, GLFW_KEY_W)) curr_y += 0.01;
-  else if (glfwGetKey(window, GLFW_KEY_S)) curr_y -= 0.01;
+  glm::mat4 transformation = glm::mat4(1.0f); //initialize matrix for transformations for the model
+  if (glfwGetKey(window, GLFW_KEY_W)) curr_y -= 0.01;
+  else if (glfwGetKey(window, GLFW_KEY_S)) curr_y += 0.01;
   else if (glfwGetKey(window, GLFW_KEY_A)) curr_x -= 0.01;
   else if (glfwGetKey(window, GLFW_KEY_D)) curr_x += 0.01;
   else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle += 0.01;
@@ -116,7 +136,9 @@ void updateAnimationLoop()
   MVP = MVP * transformation * Rotation;
 
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-  glDrawArrays(GL_TRIANGLES, NUM_VERTICES_PER_MODEL*(model_index), NUM_VERTICES_PER_MODEL);
+  
+  // draw **active** (movable) triangle
+  glDrawArrays(GL_TRIANGLES, NUM_VERTICES_PER_MODEL*model_index, NUM_VERTICES_PER_MODEL);
 
   glDisableVertexAttribArray(0);
 
@@ -212,8 +234,15 @@ bool initializeVertexbuffer()
 {
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
+
+  for(int i=0; i<model_index; i++){
+    // generate model from saved position
+    genSquare(&vertices, glm::vec3(savedModelsOffset[i], 0.0f, 0.0f));
+    // printf ("curr_x: %f\n", savedModelsOffset[i]);
+  }
+  printf("%d -> %d\n", model_index, vertices.size());
+  // generate movable object
   genSquare(&vertices, glm::vec3(0));
-  genSquare(&vertices, glm::vec3(0.0f, 2.0f, 0.0f));
 
   glGenBuffers(1, &vertexbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
