@@ -29,7 +29,9 @@ int static const SAVEDMODELSMAX = 100;
 float savedModelsOffset[SAVEDMODELSMAX];
 float savedModelsRotation[SAVEDMODELSMAX];
 int savedModels[SAVEDMODELSMAX]; /// whih representative model forwhich object on screen by index
-float static const UPPER_BOUND = -17.0f;
+float static const DISTANCE = 20.0f;
+float static const UPPER_BOUND = -DISTANCE/2;
+float static const LOWER_BOUND = +DISTANCE/2;
 
 int main( void )
 {
@@ -83,8 +85,6 @@ void updateAnimationLoop()
   // Use our shader
   glUseProgram(programID);
 
-  initializeMVPTransformation();
-
   // Send our transformation to the currently bound shader, 
   // in the "MVP" uniform
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
@@ -110,7 +110,8 @@ void updateAnimationLoop()
     Rotation = glm::mat4(1.0f);
     Rotation = glm::rotate(Rotation, savedModelsRotation[i], glm::vec3(0.0f, 0.0f, 1.0f));
     transformation = glm::mat4(1.0f);
-    transformation = glm::translate(transformation, glm::vec3(savedModelsOffset[i], 0.0f, 0.0f));
+    transformation = glm::translate(transformation, glm::vec3(savedModelsOffset[i], LOWER_BOUND, 0.0f));
+    initializeMVPTransformation();
     MVP = MVP * transformation * Rotation;
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
@@ -124,7 +125,7 @@ void updateAnimationLoop()
 
   curr_y += 0.005; //gravity
   // upper bound check
-  if (curr_y > 0){
+  if (curr_y > LOWER_BOUND){
     curr_y = UPPER_BOUND;
     savedModelsOffset[model_index] = curr_x;
     savedModelsRotation[model_index] = curr_angle;
@@ -153,12 +154,13 @@ void updateAnimationLoop()
 
   // Tansformation matrix : translates **active model** according to *curr_x* and *curr_y*
   transformation = glm::translate(transformation, glm::vec3(curr_x, curr_y, 0.0f));
+  initializeMVPTransformation();
   MVP = MVP * transformation * Rotation;
 
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
   
   // draw **active** (movable) triangle
-  glDrawArrays(GL_TRIANGLES, NUM_VERTICES_PER_MODEL*model_index, NUM_VERTICES_PER_MODEL);
+  glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES_PER_MODEL);
 
   glDisableVertexAttribArray(0);
 
@@ -184,7 +186,7 @@ bool initializeWindow()
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   // Open a window and create its OpenGL context
-  window = glfwCreateWindow(1024, 768, "Tutorial 02 - Red triangle", NULL, NULL);
+  window = glfwCreateWindow(1024, 768, "Showcase", NULL, NULL);
   if (window == NULL) {
     fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
     getchar();
@@ -221,9 +223,8 @@ bool initializeMVPTransformation()
   glm::mat4 Projection = glm::perspective(glm::radians(60.0f), 4.0f / 3.0f, 0.1f, 100.0f);
   //glm::mat4 Projection = glm::frustum(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
   // Camera matrix
-  float distance = 30;
   glm::mat4 View = glm::lookAt(
-    glm::vec3(0, 0, -distance), // Camera is at (0,0,-20), in World Space
+    glm::vec3(0, 0, -DISTANCE), // Camera is at ( 5, 5,-20), in World Space
     glm::vec3(0, 0, 0), // and looks at the origin
     glm::vec3(0, -1, 0)  // Head is down (set to 0,1,0 to look up)
   );
