@@ -27,7 +27,8 @@ std::vector<glm::vec3> vertices;
 // used when generating model vertices
 int static const SAVEDMODELSMAX = 100;
 float savedModelsOffset[SAVEDMODELSMAX];
-int savedModels[SAVEDMODELSMAX];
+float savedModelsRotation[SAVEDMODELSMAX];
+int savedModels[SAVEDMODELSMAX]; /// whih representative model forwhich object on screen by index
 float static const UPPER_BOUND = -17.0f;
 
 int main( void )
@@ -47,6 +48,7 @@ int main( void )
 
   curr_x = 0;
   curr_y = UPPER_BOUND;
+  curr_angle = 0;
   model_touched_ground = true; // to generate a model at start
   model_index = 0; // 0 = 1 model
 
@@ -72,6 +74,7 @@ void genModels(std::vector<glm::vec3> * vertices)
   //todo
 }
 
+int temp = 0; // DEBUG
 void updateAnimationLoop()
 {
   // Clear the screen
@@ -99,19 +102,35 @@ void updateAnimationLoop()
   );
 
   
+  glm::mat4 Rotation;
+  glm::mat4 transformation; //initialize matrix for transformations for the model
   // draw **inactive** (unmovable) triangle
-  if(model_index > 0){
-    glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES_PER_MODEL*model_index); // 6 indices starting at 0 -> 1 square
-  }
+  for(int i = 0; i < model_index; i++){
+    // change curr_angle
+    Rotation = glm::mat4(1.0f);
+    Rotation = glm::rotate(Rotation, savedModelsRotation[i], glm::vec3(0.0f, 0.0f, 1.0f));
+    transformation = glm::mat4(1.0f);
+    transformation = glm::translate(transformation, glm::vec3(savedModelsOffset[i], 0.0f, 0.0f));
+    MVP = MVP * transformation * Rotation;
+    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
-  curr_y += 0.01; //gravity
+    glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES_PER_MODEL); // 6 indices starting at 0 -> 1 square
+    // DEBUG
+    if (temp != model_index){
+      printf("model: %d, rotation: %f, offset: %f\n", i, savedModelsRotation[i], savedModelsOffset[i]);
+    }
+  }
+  temp = model_index; // DEBUG
+
+  curr_y += 0.005; //gravity
   // upper bound check
   if (curr_y > 0){
     curr_y = UPPER_BOUND;
     savedModelsOffset[model_index] = curr_x;
-    printf("curr_x value saved: %f\n", curr_x);
+    savedModelsRotation[model_index] = curr_angle;
     curr_x = 0;
     model_index++;
+    curr_angle = 0;
     if (model_index > SAVEDMODELSMAX){
       exit(1); // exit because too many models saved
     }
@@ -120,7 +139,7 @@ void updateAnimationLoop()
   }
 
   // draw **active** (movable) model
-  glm::mat4 transformation = glm::mat4(1.0f); //initialize matrix for transformations for the model
+  transformation = glm::mat4(1.0f);
   if (glfwGetKey(window, GLFW_KEY_W)) curr_y -= 0.01;
   else if (glfwGetKey(window, GLFW_KEY_S)) curr_y += 0.01;
   else if (glfwGetKey(window, GLFW_KEY_A)) curr_x -= 0.01;
@@ -128,7 +147,8 @@ void updateAnimationLoop()
   else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle += 0.01;
 
   // Rotation matrix : rotates **active model** according to *curr_angle*
-  glm::mat4 Rotation = glm::mat4(1.0f);
+  
+  Rotation = glm::mat4(1.0f);
   Rotation = glm::rotate(Rotation, curr_angle, glm::vec3(0.0f, 0.0f, 1.0f));
 
   // Tansformation matrix : translates **active model** according to *curr_x* and *curr_y*
@@ -235,12 +255,11 @@ bool initializeVertexbuffer()
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
 
-  for(int i=0; i<model_index; i++){
-    // generate model from saved position
-    genSquare(&vertices, glm::vec3(savedModelsOffset[i], 0.0f, 0.0f));
-    // printf ("curr_x: %f\n", savedModelsOffset[i]);
-  }
-  printf("%d -> %d\n", model_index, vertices.size());
+  // for(int i=0; i<model_index; i++){
+  //   // generate model from saved position
+  //   // genSquare(&vertices, glm::vec3(savedModelsOffset[i], 0.0f, 0.0f));
+  //   genSquare(&vertices, glm::vec3(0.0f, 0.0f, 0.0f));
+  // }
   // generate movable object
   genSquare(&vertices, glm::vec3(0));
 
