@@ -21,7 +21,7 @@ using namespace glm;
 // static GLfloat g_vertex_buffer_data[num_coordinates*num_verticesModel*max_models];
 int model_index;
 bool model_touched_ground;
-static const int NUM_VERTICES_PER_MODEL = 6;
+static const int NUM_VERTICES_PER_MODEL = 36;
 std::vector<glm::vec3> vertices;
 
 // used when generating model vertices
@@ -50,7 +50,7 @@ int main( void )
 
   curr_x = 0;
   curr_y = UPPER_BOUND;
-  curr_angle = 0;
+  curr_angle_z = 0;
   model_touched_ground = true; // to generate a model at start
   model_index = 0; // 0 = 1 model
 
@@ -106,7 +106,6 @@ void updateAnimationLoop()
   glm::mat4 transformation; //initialize matrix for transformations for the model
   // draw **inactive** (unmovable) triangle
   for(int i = 0; i < model_index; i++){
-    // change curr_angle
     Rotation = glm::mat4(1.0f);
     Rotation = glm::rotate(Rotation, savedModelsRotation[i], glm::vec3(0.0f, 0.0f, 1.0f));
     transformation = glm::mat4(1.0f);
@@ -128,10 +127,10 @@ void updateAnimationLoop()
   if (curr_y > LOWER_BOUND){
     curr_y = UPPER_BOUND;
     savedModelsOffset[model_index] = curr_x;
-    savedModelsRotation[model_index] = curr_angle;
+    savedModelsRotation[model_index] = curr_angle_z;
     curr_x = 0;
     model_index++;
-    curr_angle = 0;
+    curr_angle_z = 0;
     if (model_index > SAVEDMODELSMAX){
       exit(1); // exit because too many models saved
     }
@@ -145,12 +144,12 @@ void updateAnimationLoop()
   else if (glfwGetKey(window, GLFW_KEY_S)) curr_y += 0.01;
   else if (glfwGetKey(window, GLFW_KEY_A)) curr_x -= 0.01;
   else if (glfwGetKey(window, GLFW_KEY_D)) curr_x += 0.01;
-  else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle += 0.01;
+  else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle_z += 0.01;
 
-  // Rotation matrix : rotates **active model** according to *curr_angle*
+  // Rotation matrix : rotates **active model** according to *curr_angle_z*
   
   Rotation = glm::mat4(1.0f);
-  Rotation = glm::rotate(Rotation, curr_angle, glm::vec3(0.0f, 0.0f, 1.0f));
+  Rotation = glm::rotate(Rotation, curr_angle_z, glm::vec3(0.0f, 0.0f, 1.0f));
 
   // Tansformation matrix : translates **active model** according to *curr_x* and *curr_y*
   transformation = glm::translate(transformation, glm::vec3(curr_x, curr_y, 0.0f));
@@ -240,12 +239,59 @@ bool initializeMVPTransformation()
 }
 void genSquare(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset)
 {
+  // front side
+  //with normalized
   modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
   modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
   modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
   modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
   modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
   modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+  
+  // back side
+  //with normalized
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
+  
+  // right sice
+  //with normalized
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
+  
+  // top side
+  //with normalized
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
+
+  // right sice
+  //with normalized
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
+  
+  // bottom side
+  //with normalized
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
 }
 void genSquare(std::vector<glm::vec3> * modelVertices)
 {
