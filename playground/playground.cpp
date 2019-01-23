@@ -125,17 +125,21 @@ void updateAnimationLoop()
   curr_y += 0.005; //gravity
   // upper bound check
   if (curr_y > LOWER_BOUND){
-    curr_y = UPPER_BOUND;
+    // Save rotation and offset for each "fallen" cube
     savedModelsOffset[model_index] = curr_x;
     savedModelsRotation[model_index] = curr_angle_z;
+    // Reset variables
+    curr_y = UPPER_BOUND;
     curr_x = 0;
-    model_index++;
     curr_angle_z = 0;
-    if (model_index > SAVEDMODELSMAX){
-      exit(1); // exit because too many models saved
-    }
     cleanupVertexbuffer();
     initializeVertexbuffer();
+
+    // Check overflow
+    model_index++;
+    if (model_index > SAVEDMODELSMAX){
+        exit(1); // exit because too many models saved
+    }
   }
 
   // draw **active** (movable) model
