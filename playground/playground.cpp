@@ -247,7 +247,7 @@ bool initializeMVPTransformation()
   return true;
   
 }
-void genSquare(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset)
+void genQube(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset)
 {
   // front side
   //with normalized
@@ -303,9 +303,9 @@ void genSquare(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset)
   modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
   modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
 }
-void genSquare(std::vector<glm::vec3> * modelVertices)
+void genQube(std::vector<glm::vec3> * modelVertices)
 {
-  genSquare (modelVertices, glm::vec3(0.0f, 0.0f, 0.0f));
+  genQube (modelVertices, glm::vec3(0.0f, 0.0f, 0.0f));
 }
 bool initializeVertexbuffer()
 {
@@ -314,11 +314,11 @@ bool initializeVertexbuffer()
 
   // for(int i=0; i<model_index; i++){
   //   // generate model from saved position
-  //   // genSquare(&vertices, glm::vec3(savedModelsOffset[i], 0.0f, 0.0f));
-  //   genSquare(&vertices, glm::vec3(0.0f, 0.0f, 0.0f));
+  //   // genQube(&vertices, glm::vec3(savedModelsOffset[i], 0.0f, 0.0f));
+  //   genQube(&vertices, glm::vec3(0.0f, 0.0f, 0.0f));
   // }
   // generate movable object
-  genSquare(&vertices, glm::vec3(0));
+  genQube(&vertices, glm::vec3(0));
   
   // Fill Vertex Buffer
   glGenBuffers(1, &vertexbuffer);

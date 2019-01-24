@@ -32,8 +32,8 @@ bool initializeMVPTransformation();
 bool initializeVertexbuffer(); //<<< initializes the vertex buffer array and binds it OpenGL
 bool cleanupVertexbuffer(); //<<< frees all recources from the vertex buffer
 bool closeWindow(); //<<< Closes the OpenGL window and terminates GLFW
-void genSquare(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset);
-void genSquare(std::vector<glm::vec3> * modelVertices);
+void genQube(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset);
+void genQube(std::vector<glm::vec3> * modelVertices);
 void genModels(std::vector<glm::vec3> * vertices);
 
 #endif
