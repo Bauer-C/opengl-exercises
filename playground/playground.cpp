@@ -30,6 +30,7 @@ std::vector<glm::vec3> normals;
 int static const SAVEDMODELSMAX = 100;
 float savedModelsOffset[SAVEDMODELSMAX];
 float savedModelsRotation[SAVEDMODELSMAX];
+float savedModelsYaw[SAVEDMODELSMAX];
 int savedModels[SAVEDMODELSMAX]; /// whih representative model forwhich object on screen by index
 float static const DISTANCE = 20.0f;
 float static const UPPER_BOUND = -DISTANCE/2;
@@ -135,6 +136,7 @@ void updateAnimationLoop()
   for(int i = 0; i < model_index; i++){
     Rotation = glm::mat4(1.0f);
     Rotation = glm::rotate(Rotation, savedModelsRotation[i], glm::vec3(0.0f, 0.0f, 1.0f));
+    Rotation = glm::rotate(Rotation, savedModelsYaw[i], glm::vec3(0.0f, 1.0f, 0.0f));
     transformation = glm::mat4(1.0f);
     transformation = glm::translate(transformation, glm::vec3(savedModelsOffset[i], LOWER_BOUND, 0.0f));
     initializeMVPTransformation();
@@ -144,7 +146,7 @@ void updateAnimationLoop()
     glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES_PER_MODEL); // 6 indices starting at 0 -> 1 square
     // DEBUG
     if (temp != model_index){
-      printf("model: %d, rotation: %f, offset: %f\n", i, savedModelsRotation[i], savedModelsOffset[i]);
+      printf("model: %d, rotation: %f, yaw: %f, offset: %f\n", i, savedModelsRotation[i], savedModelsOffset[i]);
     }
   }
   temp = model_index; // DEBUG
@@ -155,10 +157,12 @@ void updateAnimationLoop()
     // Save rotation and offset for each "fallen" cube
     savedModelsOffset[model_index] = curr_x;
     savedModelsRotation[model_index] = curr_angle_z;
+    savedModelsYaw[model_index] = curr_angle_y;
     // Reset variables
     curr_y = UPPER_BOUND;
     curr_x = 0;
     curr_angle_z = 0;
+    curr_angle_y = 0;
     cleanupVertexbuffer();
     initializeVertexbuffer();
 
@@ -176,11 +180,13 @@ void updateAnimationLoop()
   else if (glfwGetKey(window, GLFW_KEY_A)) curr_x -= 0.01;
   else if (glfwGetKey(window, GLFW_KEY_D)) curr_x += 0.01;
   else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle_z += 0.01;
+  else if (glfwGetKey(window, GLFW_KEY_T)) curr_angle_y += 0.01;
 
-  // Rotation matrix : rotates **active model** according to *curr_angle_z*
+  // Rotation matrix : rotates **active model** according to *curr_angle_z* and curr_angle_y
   
   Rotation = glm::mat4(1.0f);
   Rotation = glm::rotate(Rotation, curr_angle_z, glm::vec3(0.0f, 0.0f, 1.0f));
+  Rotation = glm::rotate(Rotation, curr_angle_y, glm::vec3(0.0f, 1.0f, 0.0f));
 
   // Tansformation matrix : translates **active model** according to *curr_x* and *curr_y*
   transformation = glm::translate(transformation, glm::vec3(curr_x, curr_y, 0.0f));

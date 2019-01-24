@@ -24,6 +24,7 @@ glm::mat4 MVP;
 float curr_x;
 float curr_y;
 float curr_angle_z;
+float curr_angle_y;
 
 int main( void ); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop

@@ -8,7 +8,6 @@ out vec3 fragmentColor;
 layout(location = 2) in vec3 vertexNormal_modelspace;
 
 // Output data ; will be interpolated for each fragment.
-out vec2 UV;
 out vec3 Position_worldspace;
 out vec3 Normal_cameraspace;
 out vec3 EyeDirection_cameraspace;
