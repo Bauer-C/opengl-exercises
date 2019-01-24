@@ -31,10 +31,12 @@ int static const SAVEDMODELSMAX = 100;
 float savedModelsOffset[SAVEDMODELSMAX];
 float savedModelsRotation[SAVEDMODELSMAX];
 float savedModelsYaw[SAVEDMODELSMAX];
+float savedModelsColor[SAVEDMODELSMAX];
 int savedModels[SAVEDMODELSMAX]; /// whih representative model forwhich object on screen by index
 float static const DISTANCE = 20.0f;
 float static const UPPER_BOUND = -DISTANCE/2;
 float static const LOWER_BOUND = +DISTANCE/2;
+int color = 0;
 
 int main( void )
 {
@@ -50,6 +52,7 @@ int main( void )
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
   initializeMVPTransformation();
+  setColor();
 
   curr_x = 0;
   curr_y = UPPER_BOUND;
@@ -134,10 +137,14 @@ void updateAnimationLoop()
   glm::mat4 Rotation;
   glm::mat4 transformation; //initialize matrix for transformations for the model
   // draw **inactive** (unmovable) triangle
+  int save_color = color;
   for(int i = 0; i < model_index; i++){
     Rotation = glm::mat4(1.0f);
     Rotation = glm::rotate(Rotation, savedModelsRotation[i], glm::vec3(0.0f, 0.0f, 1.0f));
     Rotation = glm::rotate(Rotation, savedModelsYaw[i], glm::vec3(0.0f, 1.0f, 0.0f));
+    Rotation = glm::rotate(Rotation, savedModelsYaw[i], glm::vec3(0.0f, 1.0f, 0.0f));
+    color = savedModelsColor[i];
+    setColor();
 
     glUniformMatrix4fv(MatrixMID, 1, GL_FALSE, &Rotation[0][0]);
     transformation = glm::mat4(1.0f);
@@ -149,9 +156,10 @@ void updateAnimationLoop()
     glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES_PER_MODEL); // 6 indices starting at 0 -> 1 square
     // DEBUG
     if (temp != model_index){
-      printf("model: %d, rotation: %f, yaw: %f, offset: %f\n", i, savedModelsRotation[i], savedModelsOffset[i]);
+      printf("model: %d, rotation: %f, yaw: %f, offset: %f, color: %d\n", i, savedModelsRotation[i], savedModelsOffset[i]), color;
     }
   }
+  color = save_color;
   temp = model_index; // DEBUG
 
   curr_y += 0.005; //gravity
@@ -161,6 +169,7 @@ void updateAnimationLoop()
     savedModelsOffset[model_index] = curr_x;
     savedModelsRotation[model_index] = curr_angle_z;
     savedModelsYaw[model_index] = curr_angle_y;
+    savedModelsColor[model_index] = color;
     // Reset variables
     curr_y = UPPER_BOUND;
     curr_x = 0;
@@ -168,6 +177,8 @@ void updateAnimationLoop()
     curr_angle_y = 0;
     cleanupVertexbuffer();
     initializeVertexbuffer();
+    setColor();
+    color = (color+1)%3;
 
     // Check overflow
     model_index++;
@@ -364,21 +375,7 @@ bool initializeVertexbuffer()
   glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vec3), vertices.data(), GL_STATIC_DRAW);
   vertices.clear();
 
-  // Fill Color Buffer
-  static GLfloat g_color_buffer_data[12*3*3];
-  for (int v = 0; v < NUM_VERTICES_PER_MODEL ; v++){
-      g_color_buffer_data[3*v+0] = 1; // red
-      g_color_buffer_data[3*v+1] = 0; // green
-      g_color_buffer_data[3*v+2] = 0; // blue
-  }
-  glGenBuffers(1, &colorbuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
   // Fill Normal Buffer
-  GLuint normalbuffer;
   glGenBuffers(1, &normalbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
   glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
@@ -390,10 +387,46 @@ bool initializeVertexbuffer()
   return true;
 }
 
+void setColor(){
+  // Fill Color Buffer
+  static GLfloat g_color_buffer_data[12*3*3];
+  for (int v = 0; v < NUM_VERTICES_PER_MODEL ; v++){
+    switch (color){
+      case 0:
+        g_color_buffer_data[3*v+0] = 1; // red
+        g_color_buffer_data[3*v+1] = 0; // green
+        g_color_buffer_data[3*v+2] = 0; // blue
+        break;
+      case 1:
+        g_color_buffer_data[3*v+0] = 0; // red
+        g_color_buffer_data[3*v+1] = 1; // green
+        g_color_buffer_data[3*v+2] = 0; // blue
+        break;
+      case 2:
+        g_color_buffer_data[3*v+0] = 0; // red
+        g_color_buffer_data[3*v+1] = 0; // green
+        g_color_buffer_data[3*v+2] = 1; // blue
+        break;
+      default:
+        g_color_buffer_data[3*v+0] = 1; // red
+        g_color_buffer_data[3*v+1] = 1; // green
+        g_color_buffer_data[3*v+2] = 1; // blue
+        break;
+    }
+  }
+  glGenBuffers(1, &colorbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+}
+
 bool cleanupVertexbuffer()
 {
   // Cleanup VBO
   glDeleteBuffers(1, &vertexbuffer);
+  glDeleteBuffers(1, &colorbuffer);
+  glDeleteBuffers(1, &normalbuffer);
   glDeleteVertexArrays(1, &VertexArrayID);
   return true;
 }

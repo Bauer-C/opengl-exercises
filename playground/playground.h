@@ -13,6 +13,7 @@ GLuint vertexbuffer;
 GLuint VertexArrayID;
 GLuint vertexbuffer_size;
 GLuint colorbuffer;
+GLuint normalbuffer;
 
 //program ID of the shaders, required for handling the shaders with OpenGL
 GLuint programID;
@@ -36,5 +37,6 @@ bool closeWindow(); //<<< Closes the OpenGL window and terminates GLFW
 void genQube(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset);
 void genQube(std::vector<glm::vec3> * modelVertices);
 void genModels(std::vector<glm::vec3> * vertices);
+void setColor();
 
 #endif
