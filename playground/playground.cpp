@@ -23,6 +23,7 @@ int model_index;
 bool model_touched_ground;
 static const int NUM_VERTICES_PER_MODEL = 36;
 std::vector<glm::vec3> vertices;
+std::vector<glm::vec3> normals;
 
 // used when generating model vertices
 int static const SAVEDMODELSMAX = 100;
@@ -337,6 +338,17 @@ bool initializeVertexbuffer()
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+  // Fill Normal Buffer
+  GLuint normalbuffer;
+  glGenBuffers(1, &normalbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+  glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+
+  // 3rd attribute buffer : normals
+  glEnableVertexAttribArray(2);
+  glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
   return true;
 }
 

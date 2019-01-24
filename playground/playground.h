@@ -25,7 +25,6 @@ float curr_x;
 float curr_y;
 float curr_angle_z;
 
-
 int main( void ); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop
 bool initializeWindow(); //<<< initializes the window using GLFW and GLEW
