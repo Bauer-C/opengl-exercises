@@ -80,7 +80,7 @@ int temp = 0; // DEBUG
 void updateAnimationLoop()
 {
   // Clear the screen
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Use our shader
   glUseProgram(programID);
@@ -212,6 +212,11 @@ bool initializeWindow()
 
   // Dark blue background
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+
+  // Enable depth test
+  glEnable(GL_DEPTH_TEST);
+  // Accept fragment if it closer to the camera than the former one
+  glDepthFunc(GL_LESS);
   return true;
 }
 
@@ -313,11 +318,25 @@ bool initializeVertexbuffer()
   // }
   // generate movable object
   genSquare(&vertices, glm::vec3(0));
-
+  
+  // Fill Vertex Buffer
   glGenBuffers(1, &vertexbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
   glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vec3), vertices.data(), GL_STATIC_DRAW);
   vertices.clear();
+
+  // Fill Color Buffer
+  static GLfloat g_color_buffer_data[12*3*3];
+  for (int v = 0; v < NUM_VERTICES_PER_MODEL ; v++){
+      g_color_buffer_data[3*v+0] = 1; // red
+      g_color_buffer_data[3*v+1] = 0; // green
+      g_color_buffer_data[3*v+2] = 0; // blue
+  }
+  glGenBuffers(1, &colorbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
   return true;
 }
 
