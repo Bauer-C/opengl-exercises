@@ -21,7 +21,8 @@ using namespace glm;
 // static GLfloat g_vertex_buffer_data[num_coordinates*num_verticesModel*max_models];
 int model_index;
 bool model_touched_ground;
-static const int NUM_VERTICES_PER_MODEL = 36;
+static const int NUM_VERTICES_PER_SIDE = 6;
+static const int NUM_VERTICES_PER_MODEL = 6*NUM_VERTICES_PER_SIDE;
 std::vector<glm::vec3> vertices;
 std::vector<glm::vec3> normals;
 
@@ -72,9 +73,34 @@ int main( void )
   
 	return 0;
 }
-void genModels(std::vector<glm::vec3> * vertices)
+void genModels(std::vector<glm::vec3> * vertices, std::vector<glm::vec3> * normals)
 {
-  //todo
+  genQube(vertices);
+
+  // front side
+  for(int i = 0; i < NUM_VERTICES_PER_SIDE; i++){
+    normals->push_back(glm::vec3( 0.0f, 0.0f,-1.0f));
+  }
+  // back side
+  for(int i = 0; i < NUM_VERTICES_PER_SIDE; i++){
+    normals->push_back(glm::vec3( 0.0f, 0.0f, 1.0f));
+  }
+  // right sice
+  for(int i = 0; i < NUM_VERTICES_PER_SIDE; i++){
+    normals->push_back(glm::vec3( 1.0f, 0.0f, 0.0f));
+  }
+  // top side
+  for(int i = 0; i < NUM_VERTICES_PER_SIDE; i++){
+    normals->push_back(glm::vec3( 0.0f,-1.0f, 0.0f));
+  }
+  // right sice
+  for(int i = 0; i < NUM_VERTICES_PER_SIDE; i++){
+    normals->push_back(glm::vec3(-1.0f,-1.0f, 0.0f));
+  }
+  // bottom side
+  for(int i = 0; i < NUM_VERTICES_PER_SIDE; i++){
+    normals->push_back(glm::vec3( 0.0f, 1.0f, 0.0f));
+  }
 }
 
 int temp = 0; // DEBUG
@@ -318,7 +344,7 @@ bool initializeVertexbuffer()
   //   genQube(&vertices, glm::vec3(0.0f, 0.0f, 0.0f));
   // }
   // generate movable object
-  genQube(&vertices, glm::vec3(0));
+  genModels(&vertices, &normals);
   
   // Fill Vertex Buffer
   glGenBuffers(1, &vertexbuffer);
