@@ -12,11 +12,11 @@ in vec3 LightDirection_cameraspace;
 
 void main()
 {
-    vec3 LightPosition_worldspace = vec3(0,0,-1);
+    vec3 LightPosition_worldspace = vec3(0,0,-10);
     // Light emission properties
 	// You probably want to put them as uniforms
 	vec3 LightColor = vec3(1,1,1);
-	float LightPower = 150.0f;
+	float LightPower = 500.0f;
 
 	// Material properties
 	vec3 MaterialDiffuseColor = fragmentColor;

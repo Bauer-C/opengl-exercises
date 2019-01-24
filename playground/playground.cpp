@@ -115,6 +115,7 @@ void updateAnimationLoop()
 
   // Send our transformation to the currently bound shader, 
   // in the "MVP" uniform
+  GLuint MatrixMID = glGetUniformLocation(programID, "M");
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
   // 1rst attribute buffer : vertices
@@ -137,6 +138,8 @@ void updateAnimationLoop()
     Rotation = glm::mat4(1.0f);
     Rotation = glm::rotate(Rotation, savedModelsRotation[i], glm::vec3(0.0f, 0.0f, 1.0f));
     Rotation = glm::rotate(Rotation, savedModelsYaw[i], glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glUniformMatrix4fv(MatrixMID, 1, GL_FALSE, &Rotation[0][0]);
     transformation = glm::mat4(1.0f);
     transformation = glm::translate(transformation, glm::vec3(savedModelsOffset[i], LOWER_BOUND, 0.0f));
     initializeMVPTransformation();
@@ -187,6 +190,7 @@ void updateAnimationLoop()
   Rotation = glm::mat4(1.0f);
   Rotation = glm::rotate(Rotation, curr_angle_z, glm::vec3(0.0f, 0.0f, 1.0f));
   Rotation = glm::rotate(Rotation, curr_angle_y, glm::vec3(0.0f, 1.0f, 0.0f));
+  glUniformMatrix4fv(MatrixMID, 1, GL_FALSE, &Rotation[0][0]);
 
   // Tansformation matrix : translates **active model** according to *curr_x* and *curr_y*
   transformation = glm::translate(transformation, glm::vec3(curr_x, curr_y, 0.0f));
@@ -256,9 +260,9 @@ bool initializeWindow()
 bool initializeMVPTransformation()
 {
   // Get a handle for our "MVP" uniform
-  GLuint MatrixIDnew = glGetUniformLocation(programID, "MVP");
-  MatrixID = MatrixIDnew;
-
+  MatrixID = glGetUniformLocation(programID, "MVP");
+  GLuint MatrixVID = glGetUniformLocation(programID, "V");
+  GLuint MatrixMID = glGetUniformLocation(programID, "M");
   
   // Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
   glm::mat4 Projection = glm::perspective(glm::radians(60.0f), 4.0f / 3.0f, 0.1f, 100.0f);
@@ -269,8 +273,10 @@ bool initializeMVPTransformation()
     glm::vec3(0, 0, 0), // and looks at the origin
     glm::vec3(0, -1, 0)  // Head is down (set to 0,1,0 to look up)
   );
+  glUniformMatrix4fv(MatrixVID, 1, GL_FALSE, &View[0][0]);
   // Model matrix : an identity matrix (model will be at the origin)
-  glm::mat4 Model = glm::mat4(1.0f);  
+  glm::mat4 Model = glm::mat4(1.0f);
+  glUniformMatrix4fv(MatrixMID, 1, GL_FALSE, &Model[0][0]);
   
   // Our ModelViewProjection : multiplication of our 3 matrices
   MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
@@ -283,57 +289,57 @@ void genQube(std::vector<glm::vec3> * modelVertices, const glm::vec3 &offset)
 {
   // front side
   //with normalized
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, -1.0f) + offset);
   
   // back side
   //with normalized
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 1.0f) + offset);
   
   // right sice
   //with normalized
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, -1.0f) + offset);
   
   // top side
   //with normalized
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f,-1.0f, 1.0f) + offset);
 
   // right sice
   //with normalized
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f,-1.0f, 1.0f) + offset);
   
   // bottom side
   //with normalized
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 0.0f) + offset);
-  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 2.0f) + offset);
-  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 2.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, -1.0f) + offset);
+  modelVertices->push_back(glm::vec3(-1.0f, 1.0f, 1.0f) + offset);
+  modelVertices->push_back(glm::vec3( 1.0f, 1.0f, 1.0f) + offset);
 }
 void genQube(std::vector<glm::vec3> * modelVertices)
 {
